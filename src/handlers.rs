@@ -1,34 +1,12 @@
-use actix_web::{HttpResponse, Responder, Result, web};
-use serde::{Deserialize, Serialize};
+use actix_web::{web, HttpResponse, Responder, Result};
 use std::process::Command;
 
 use git2::Repository;
 
-mod git_tasks;
+mod tracker;
 
 pub async fn health_check() -> impl Responder {
     HttpResponse::Ok()
-}
-
-#[derive(Serialize, Deserialize)]
-struct Repo {
-    full_name: String,
-    ssh_url: String,
-}
-#[derive(Serialize, Deserialize)]
-struct Hd {
-    repo: Repo,
-}
-#[derive(Serialize, Deserialize)]
-struct Pr {
-    url: String,
-    state: String,
-    head: Hd,
-}
-#[derive(Serialize, Deserialize)]
-pub struct Req {
-    number: i32,
-    pull_request: Pr,
 }
 
 fn fetch_pull_event(repo: &git2::Repository) -> Result<(), git2::Error> {
@@ -37,16 +15,16 @@ fn fetch_pull_event(repo: &git2::Repository) -> Result<(), git2::Error> {
         .fetch(&["pull-event:pull-event"], None, None)
 }
 
-pub async fn event(info: web::Json<Req>) -> impl Responder {
+pub async fn event(info: web::Json<tracker::Req>) -> impl Responder {
     println!("cloning source");
-    git_tasks::clone_repo(&info.pull_request.head.repo.full_name).unwrap();
+    tracker::clone_repo(&info.pull_request.head.repo.full_name).unwrap();
 
     println!("cloning target");
-    git_tasks::clone_repo("bsdlabs/freebsd-ports").unwrap();
+    tracker::clone_repo("bsdlabs/freebsd-ports").unwrap();
 
     println!("fetch pull request on source");
     let source = Repository::open("/tmp/bsdlabs/ports").unwrap();
-    git_tasks::fetch_pull(
+    tracker::fetch_pr(
         source,
         &info.pull_request.head.repo.ssh_url,
         &format!("pull/{}/head", info.number),
@@ -71,7 +49,7 @@ pub async fn event(info: web::Json<Req>) -> impl Responder {
     };
 
     println!("push to target");
-    git_tasks::sync_target(target).unwrap();
+    tracker::sync_target(target).unwrap();
 
     HttpResponse::Ok()
 }

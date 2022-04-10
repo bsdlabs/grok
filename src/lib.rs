@@ -1,4 +1,4 @@
-use actix_web::{App, HttpServer, dev::Server, web};
+use actix_web::{dev::Server, web, App, HttpServer};
 use std::net::TcpListener;
 
 mod handlers;

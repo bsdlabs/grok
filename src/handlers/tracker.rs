@@ -1,5 +1,31 @@
 use git2::{Cred, Direction, Error, FetchOptions, RemoteCallbacks};
+use serde::{Deserialize, Serialize};
 use std::{env, path::Path};
+
+#[derive(Serialize, Deserialize)]
+pub struct Repo {
+    pub full_name: String,
+    pub ssh_url: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Head {
+    pub repo: Repo,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Pr {
+    pub url: String,
+    pub state: String,
+    pub head: Head,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Req {
+    pub number: i32,
+    pub pull_request: Pr,
+}
+
 
 fn create_callbacks<'a>(path: String) -> RemoteCallbacks<'a> {
     let mut callbacks = RemoteCallbacks::new();
@@ -38,17 +64,20 @@ pub fn clone_repo(full_name: &str) -> Result<(), Error> {
         .clone(
             &format!("git@github.com:{}.git", full_name),
             Path::new(&format!("/tmp/{}", full_name)),
-        )
-        .unwrap();
+        ).unwrap();
 
     Ok(())
 }
 
-pub fn fetch_pull(repo: git2::Repository, _url: &str, pull: &str) -> Result<(), git2::Error> {
+pub fn fetch_pr(repo: git2::Repository, _url: &str, pull: &str) -> Result<(), git2::Error> {
     let mut fo = git2::FetchOptions::new();
     fetch_authenticate(
         &mut fo,
-        format!("{}/.ssh/bsdlabs/ports-id_ed25519", env::var("HOME").unwrap()).to_string(),
+        format!(
+            "{}/.ssh/bsdlabs/ports-id_ed25519",
+            env::var("HOME").unwrap()
+        )
+        .to_string(),
     );
 
     repo.find_remote("origin")?
