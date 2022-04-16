@@ -2,6 +2,7 @@ use actix_web::{dev::Server, web, App, HttpServer};
 use std::net::TcpListener;
 
 mod handlers;
+pub mod config;
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
     let server = HttpServer::new(|| {
