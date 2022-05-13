@@ -28,6 +28,7 @@ pub struct Repositories {
 }
 
 pub fn read_config() -> std::io::Result<Config> {
-    let confg = std::fs::read_to_string("grok.conf")?;
+    let confg = std::fs::read_to_string(
+        "/usr/local/etc/grok/grok.conf")?;
     Ok(toml::from_str(&confg)?)
 }
