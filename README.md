@@ -6,6 +6,41 @@ grok is a (**g**)it b(**rok**)er that responds to events (via webhooks) and _gro
 
 Status: **proof-of-concept** - validate the feasibility of, and the issues involved with, using a credential set to take privileged actions invoked by non-privileged actors, without comprising those credentials.
 
+## Getting Started
+
+### Installation
+
+To try out the PoC version:
+
+```
+$ git clone git@github.com:bsdlabs/grok
+$ cargo install --path grok
+$ mkdir /usr/local/etc/grok/
+$ cp grok/grok.conf /usr/local/etc/grok/
+```
+
+Modify the configuration file, run `grok` with `nohup` in the background, and add webhooks in your GitHub repositories for PR events to the grok instance at the _/event_ directory, e.g. http://<grok_address>/event.
+
+### Configuration
+
+Multiple source and target repositories are supported (they just need to come in order since they're zipped):
+
+```
+[general]
+bind = "127.0.0.1"
+port = 5195
+
+[provider]
+default = "github"
+
+[repositories]
+source = [{repo = "a/source", key = "/path/to/ssh-key"}, {repo = "b/source", key = "/path/to/ssh-key"}]
+target = [{repo = "a/target", key = "/path/to/ssh-key"}, {repo = "b/target", key = "/path/to/ssh-key"}]
+```
+
+The _provider_ section is not used at the moment.
+
+
 ## Roadmap
 
 - [ ] Add error handling (failed merge, sync failure, etc)
